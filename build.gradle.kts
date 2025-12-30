@@ -3,6 +3,7 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 plugins {
     kotlin("jvm") version "1.9.21"
     id("org.jetbrains.compose") version "1.5.11"
+    id("org.xbib.gradle.plugin.jflex") version "3.0.2"
 }
 
 group = "com.scriptrunner"
@@ -55,4 +56,23 @@ compose.desktop {
 
 kotlin {
     jvmToolchain(17)
+}
+
+// JFlex configuration
+jflex {
+    encoding = "UTF-8"
+}
+
+sourceSets {
+    main {
+        java.srcDir(layout.buildDirectory.dir("generated/sources/main"))
+    }
+}
+
+tasks.named("compileKotlin") {
+    dependsOn("generateJflex")
+}
+
+tasks.named("compileJava") {
+    dependsOn("generateJflex")
 }
