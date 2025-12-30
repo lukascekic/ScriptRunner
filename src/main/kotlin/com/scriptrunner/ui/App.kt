@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.unit.dp
 import com.scriptrunner.model.ExecutionState
 import com.scriptrunner.ui.components.EditorPane
@@ -21,6 +22,7 @@ import com.scriptrunner.viewmodel.MainViewModel
 fun App() {
     val viewModel = remember { MainViewModel() }
     val scope = rememberCoroutineScope()
+    val editorFocusRequester = remember { FocusRequester() }
 
     val isRunning = viewModel.executionState.value is ExecutionState.Running
 
@@ -39,6 +41,7 @@ fun App() {
             EditorPane(
                 value = viewModel.scriptContent.value,
                 onValueChange = viewModel::updateScript,
+                focusRequester = editorFocusRequester,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
@@ -48,6 +51,10 @@ fun App() {
             OutputPane(
                 lines = viewModel.outputLines,
                 onClear = viewModel::clearOutput,
+                onErrorClick = { error ->
+                    viewModel.navigateToError(error)
+                    editorFocusRequester.requestFocus()
+                },
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()

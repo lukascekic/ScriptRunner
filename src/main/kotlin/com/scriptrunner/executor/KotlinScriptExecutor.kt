@@ -3,6 +3,8 @@ package com.scriptrunner.executor
 import com.scriptrunner.model.ExecutionEvent
 import com.scriptrunner.model.OutputLine
 import com.scriptrunner.model.Script
+import com.scriptrunner.parser.ErrorParser
+import com.scriptrunner.parser.KotlinErrorParser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,7 +17,9 @@ import org.slf4j.LoggerFactory
 import java.io.File
 import kotlin.coroutines.coroutineContext
 
-class KotlinScriptExecutor : ScriptExecutor {
+class KotlinScriptExecutor(
+    private val errorParser: ErrorParser = KotlinErrorParser()
+) : ScriptExecutor {
 
     private val logger = LoggerFactory.getLogger(KotlinScriptExecutor::class.java)
 
@@ -46,7 +50,14 @@ class KotlinScriptExecutor : ScriptExecutor {
             var line: String?
             while (reader.readLine().also { line = it } != null) {
                 if (!coroutineContext.isActive) break
-                emit(ExecutionEvent.Output(OutputLine(line!!)))
+                val text = line!!
+                val errorLocation = errorParser.parse(text)
+                val outputLine = OutputLine(
+                    text = text,
+                    isError = errorLocation != null,
+                    errorLocation = errorLocation
+                )
+                emit(ExecutionEvent.Output(outputLine))
             }
             reader.close()
 

@@ -13,6 +13,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -31,6 +33,7 @@ fun EditorPane(
     value: TextFieldValue,
     onValueChange: (TextFieldValue) -> Unit,
     modifier: Modifier = Modifier,
+    focusRequester: FocusRequester = remember { FocusRequester() },
     highlighter: SyntaxHighlighter = remember { KotlinSyntaxHighlighter() }
 ) {
     val scrollState = rememberScrollState()
@@ -53,6 +56,7 @@ fun EditorPane(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(12.dp)
+                .focusRequester(focusRequester)
                 .verticalScroll(scrollState),
             textStyle = TextStyle(
                 fontFamily = FontFamily.Monospace,

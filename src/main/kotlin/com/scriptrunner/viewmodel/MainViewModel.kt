@@ -2,9 +2,11 @@ package com.scriptrunner.viewmodel
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import com.scriptrunner.executor.KotlinScriptExecutor
 import com.scriptrunner.executor.ScriptExecutor
+import com.scriptrunner.model.ErrorLocation
 import com.scriptrunner.model.ExecutionEvent
 import com.scriptrunner.model.ExecutionState
 import com.scriptrunner.model.OutputLine
@@ -66,5 +68,23 @@ class MainViewModel {
 
     fun updateScript(value: TextFieldValue) {
         scriptContent.value = value
+    }
+
+    fun navigateToError(error: ErrorLocation) {
+        val text = scriptContent.value.text
+        val lines = text.lines()
+
+        // Calculate character offset for line:column
+        val lineIndex = (error.line - 1).coerceIn(0, lines.size - 1)
+        var offset = 0
+        for (i in 0 until lineIndex) {
+            offset += lines[i].length + 1 // +1 for newline
+        }
+        offset += (error.column - 1).coerceIn(0, lines.getOrNull(lineIndex)?.length ?: 0)
+        offset = offset.coerceIn(0, text.length)
+
+        scriptContent.value = scriptContent.value.copy(
+            selection = TextRange(offset)
+        )
     }
 }
