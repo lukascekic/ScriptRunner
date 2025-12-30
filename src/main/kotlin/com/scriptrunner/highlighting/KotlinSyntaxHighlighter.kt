@@ -5,6 +5,8 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
+import com.scriptrunner.lexer.KotlinLexerAdapter
+import com.scriptrunner.lexer.TokenType
 import com.scriptrunner.model.ScriptLanguage
 
 object SyntaxColors {
@@ -12,76 +14,39 @@ object SyntaxColors {
     val string = Color(0xFF6AAB73)       // Green
     val comment = Color(0xFF7A7E85)      // Gray
     val number = Color(0xFF2AACB8)       // Cyan/Blue
+    val bracket = Color(0xFFD4D4D4)      // Light gray for brackets
     val default = Color(0xFFBCBEC4)      // Light gray (default text)
 }
 
 class KotlinSyntaxHighlighter : SyntaxHighlighter {
     override val language = ScriptLanguage.KOTLIN
 
-    private val keywords = setOf(
-        "fun", "val", "var", "if", "else", "when", "for", "while", "do",
-        "class", "object", "interface", "enum", "sealed", "data", "abstract", "open",
-        "return", "break", "continue", "throw", "try", "catch", "finally",
-        "null", "true", "false", "is", "as", "in", "out",
-        "private", "public", "protected", "internal", "override", "suspend",
-        "import", "package", "this", "super", "companion", "init", "constructor"
-    )
-
-    private val patterns = listOf(
-        TokenPattern(Regex("""//[^\n]*"""), SyntaxColors.comment, FontStyle.Italic),
-        TokenPattern(Regex("""/\*[\s\S]*?\*/"""), SyntaxColors.comment, FontStyle.Italic),
-        TokenPattern(Regex("\"\"\"[\\s\\S]*?\"\"\""), SyntaxColors.string, null),
-        TokenPattern(Regex(""""(?:[^"\\]|\\.)*""""), SyntaxColors.string, null),
-        TokenPattern(Regex("""'(?:[^'\\]|\\.)'"""), SyntaxColors.string, null),
-        TokenPattern(Regex("""\b\d+\.?\d*[fFdDlL]?\b"""), SyntaxColors.number, null),
-        TokenPattern(Regex("""\b0x[0-9a-fA-F]+\b"""), SyntaxColors.number, null)
-    )
+    private val lexer = KotlinLexerAdapter()
 
     override fun highlight(code: String): AnnotatedString = buildAnnotatedString {
         append(code)
 
-        val highlighted = BooleanArray(code.length)
+        if (code.isEmpty()) return@buildAnnotatedString
 
-        // Apply pattern-based highlighting (comments, strings, numbers)
-        for (pattern in patterns) {
-            pattern.regex.findAll(code).forEach { match ->
-                if (!isHighlighted(highlighted, match.range)) {
-                    addStyle(
-                        SpanStyle(color = pattern.color, fontStyle = pattern.fontStyle),
-                        match.range.first,
-                        match.range.last + 1
-                    )
-                    markHighlighted(highlighted, match.range)
-                }
-            }
-        }
+        val tokens = lexer.tokenize(code)
 
-        // Apply keyword highlighting
-        val wordPattern = Regex("""\b[a-zA-Z_][a-zA-Z0-9_]*\b""")
-        wordPattern.findAll(code).forEach { match ->
-            if (match.value in keywords && !isHighlighted(highlighted, match.range)) {
-                addStyle(
-                    SpanStyle(color = SyntaxColors.keyword),
-                    match.range.first,
-                    match.range.last + 1
-                )
-            }
+        for (token in tokens) {
+            val style = getStyleForToken(token.type) ?: continue
+            addStyle(style, token.startOffset, token.endOffset)
         }
     }
 
-    private fun isHighlighted(highlighted: BooleanArray, range: IntRange): Boolean {
-        return range.any { highlighted[it] }
+    private fun getStyleForToken(type: TokenType): SpanStyle? = when (type) {
+        TokenType.KEYWORD -> SpanStyle(color = SyntaxColors.keyword)
+        TokenType.STRING, TokenType.CHAR -> SpanStyle(color = SyntaxColors.string)
+        TokenType.COMMENT -> SpanStyle(color = SyntaxColors.comment, fontStyle = FontStyle.Italic)
+        TokenType.NUMBER -> SpanStyle(color = SyntaxColors.number)
+        TokenType.LPAREN, TokenType.RPAREN,
+        TokenType.LBRACE, TokenType.RBRACE,
+        TokenType.LBRACKET, TokenType.RBRACKET,
+        TokenType.LT, TokenType.GT -> SpanStyle(color = SyntaxColors.bracket)
+        TokenType.IDENTIFIER, TokenType.OPERATOR -> null // Use default color
+        TokenType.WHITESPACE, TokenType.NEWLINE -> null
+        TokenType.ERROR -> SpanStyle(color = Color.Red)
     }
-
-    private fun markHighlighted(highlighted: BooleanArray, range: IntRange) {
-        for (i in range) {
-            highlighted[i] = true
-        }
-    }
-
-    private data class TokenPattern(
-        val regex: Regex,
-        val color: Color,
-        val fontStyle: FontStyle?
-    )
 }
