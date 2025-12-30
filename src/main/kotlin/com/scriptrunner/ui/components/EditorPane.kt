@@ -11,21 +11,35 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.scriptrunner.highlighting.KotlinSyntaxHighlighter
+import com.scriptrunner.highlighting.SyntaxColors
+import com.scriptrunner.highlighting.SyntaxHighlighter
 
 @Composable
 fun EditorPane(
     value: TextFieldValue,
     onValueChange: (TextFieldValue) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    highlighter: SyntaxHighlighter = remember { KotlinSyntaxHighlighter() }
 ) {
     val scrollState = rememberScrollState()
+
+    val syntaxTransformation = remember(highlighter) {
+        VisualTransformation { text ->
+            TransformedText(highlighter.highlight(text.text), OffsetMapping.Identity)
+        }
+    }
 
     Box(
         modifier = modifier
@@ -43,9 +57,10 @@ fun EditorPane(
             textStyle = TextStyle(
                 fontFamily = FontFamily.Monospace,
                 fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurface
+                color = SyntaxColors.default
             ),
             cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+            visualTransformation = syntaxTransformation,
             decorationBox = { innerTextField ->
                 if (value.text.isEmpty()) {
                     Text(
@@ -53,7 +68,7 @@ fun EditorPane(
                         style = TextStyle(
                             fontFamily = FontFamily.Monospace,
                             fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                            color = SyntaxColors.default.copy(alpha = 0.5f)
                         )
                     )
                 }
