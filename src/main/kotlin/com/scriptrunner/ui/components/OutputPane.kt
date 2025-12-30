@@ -2,6 +2,7 @@ package com.scriptrunner.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,15 +21,20 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.scriptrunner.model.ErrorLocation
 import com.scriptrunner.model.OutputLine
 
 @Composable
 fun OutputPane(
     lines: List<OutputLine>,
     onClear: () -> Unit,
+    onErrorClick: (ErrorLocation) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
@@ -80,12 +86,22 @@ fun OutputPane(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     items(lines) { line ->
+                        val isClickable = line.errorLocation != null
                         Text(
                             text = line.text,
                             fontFamily = FontFamily.Monospace,
                             fontSize = 13.sp,
                             color = if (line.isError) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(vertical = 1.dp)
+                            textDecoration = if (isClickable) TextDecoration.Underline else TextDecoration.None,
+                            modifier = Modifier
+                                .padding(vertical = 1.dp)
+                                .then(
+                                    if (isClickable) {
+                                        Modifier
+                                            .pointerHoverIcon(PointerIcon.Hand)
+                                            .clickable { line.errorLocation?.let(onErrorClick) }
+                                    } else Modifier
+                                )
                         )
                     }
                 }
