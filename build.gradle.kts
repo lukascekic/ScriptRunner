@@ -25,6 +25,15 @@ dependencies {
     // Logging
     implementation("org.slf4j:slf4j-api:2.0.9")
     implementation("ch.qos.logback:logback-classic:1.4.14")
+
+    // Testing
+    testImplementation(kotlin("test"))
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+}
+
+tasks.test {
+    useJUnitPlatform()
+    systemProperty("kotlinc.path", "C:\\Program Files\\JetBrains\\IntelliJ IDEA 2025.2.4\\plugins\\Kotlin\\kotlinc\\bin\\kotlinc.bat")
 }
 
 compose.desktop {
