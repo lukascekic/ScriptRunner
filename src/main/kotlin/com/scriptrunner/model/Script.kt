@@ -11,7 +11,11 @@ enum class ScriptLanguage(val extension: String) {
 
     val command: List<String>
         get() = when (this) {
-            KOTLIN -> listOf(resolveKotlinc(), "-script")
+            KOTLIN -> if (isWindows()) {
+                listOf("cmd", "/c", resolveKotlinc(), "-script")
+            } else {
+                listOf(resolveKotlinc(), "-script")
+            }
             SWIFT -> listOf("/usr/bin/env", "swift")
         }
 
@@ -20,4 +24,6 @@ enum class ScriptLanguage(val extension: String) {
             ?: System.getenv("KOTLINC_PATH")
             ?: "kotlinc"
     }
+
+    private fun isWindows() = System.getProperty("os.name").lowercase().contains("windows")
 }
