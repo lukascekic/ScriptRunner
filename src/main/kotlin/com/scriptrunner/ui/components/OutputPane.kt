@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,16 +34,21 @@ import com.scriptrunner.model.OutputLine
 @Composable
 fun OutputPane(
     lines: List<OutputLine>,
+    clearGeneration: Int = 0,
     onClear: () -> Unit,
     onErrorClick: (ErrorLocation) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
 
-    LaunchedEffect(lines.size) {
-        if (lines.isNotEmpty()) {
-            listState.animateScrollToItem(lines.size - 1)
-        }
+    // Auto-scroll when new lines arrive, restart effect when output is cleared
+    LaunchedEffect(clearGeneration) {
+        snapshotFlow { lines.size }
+            .collect { size ->
+                if (size > 0) {
+                    listState.scrollToItem(size - 1)
+                }
+            }
     }
 
     Column(

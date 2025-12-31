@@ -26,11 +26,13 @@ class MainViewModel {
     val scriptContent = mutableStateOf(TextFieldValue(""))
     val outputLines = mutableStateListOf<OutputLine>()
     val executionState = mutableStateOf<ExecutionState>(ExecutionState.Idle)
+    val clearGeneration = mutableStateOf(0)
 
     fun runScript(scope: CoroutineScope) {
         if (executionState.value is ExecutionState.Running) return
 
         outputLines.clear()
+        clearGeneration.value++
         executionState.value = ExecutionState.Running
         startTime = TimeSource.Monotonic.markNow()
 
@@ -64,6 +66,7 @@ class MainViewModel {
 
     fun clearOutput() {
         outputLines.clear()
+        clearGeneration.value++
     }
 
     fun updateScript(value: TextFieldValue) {
