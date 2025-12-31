@@ -38,9 +38,12 @@ fun EditorPane(
 ) {
     val scrollState = rememberScrollState()
 
-    val syntaxTransformation = remember(highlighter) {
+    // Use cursor position for bracket matching
+    val cursorOffset = value.selection.start
+
+    val syntaxTransformation = remember(highlighter, value.text, cursorOffset) {
         VisualTransformation { text ->
-            TransformedText(highlighter.highlight(text.text), OffsetMapping.Identity)
+            TransformedText(highlighter.highlight(text.text, cursorOffset), OffsetMapping.Identity)
         }
     }
 
