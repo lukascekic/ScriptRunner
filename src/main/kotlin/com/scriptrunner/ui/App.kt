@@ -50,6 +50,7 @@ fun App() {
 
             OutputPane(
                 lines = viewModel.outputLines,
+                clearGeneration = viewModel.clearGeneration.value,
                 onClear = viewModel::clearOutput,
                 onErrorClick = { error ->
                     viewModel.navigateToError(error)
