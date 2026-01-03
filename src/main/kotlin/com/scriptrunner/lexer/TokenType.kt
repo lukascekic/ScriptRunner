@@ -2,6 +2,7 @@ package com.scriptrunner.lexer
 
 enum class TokenType {
     KEYWORD,
+    BUILTIN_TYPE,
     IDENTIFIER,
     STRING,
     CHAR,
