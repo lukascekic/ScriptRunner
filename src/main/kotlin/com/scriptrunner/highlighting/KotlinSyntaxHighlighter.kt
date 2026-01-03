@@ -13,6 +13,7 @@ import com.scriptrunner.model.ScriptLanguage
 
 object SyntaxColors {
     val keyword = Color(0xFFCF8E6D)      // Orange
+    val builtinType = Color(0xFF56A8F5)  // Blue for built-in types
     val string = Color(0xFF6AAB73)       // Green
     val comment = Color(0xFF7A7E85)      // Gray
     val number = Color(0xFF2AACB8)       // Cyan/Blue
@@ -81,6 +82,7 @@ class KotlinSyntaxHighlighter : SyntaxHighlighter {
 
         return when (token.type) {
             TokenType.KEYWORD -> SpanStyle(color = SyntaxColors.keyword)
+            TokenType.BUILTIN_TYPE -> SpanStyle(color = SyntaxColors.builtinType)
             TokenType.STRING, TokenType.CHAR -> SpanStyle(color = SyntaxColors.string)
             TokenType.COMMENT -> SpanStyle(color = SyntaxColors.comment, fontStyle = FontStyle.Italic)
             TokenType.NUMBER -> SpanStyle(color = SyntaxColors.number)

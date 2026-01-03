@@ -116,6 +116,27 @@ FloatLiteral = {Digit}+ \. {Digit}+ ([eE] [+-]? {Digit}+)? [fFdD]?
     "get"           { markTokenStart(); return TokenType.KEYWORD; }
     "set"           { markTokenStart(); return TokenType.KEYWORD; }
 
+    // Built-in types
+    "String"        { markTokenStart(); return TokenType.BUILTIN_TYPE; }
+    "Int"           { markTokenStart(); return TokenType.BUILTIN_TYPE; }
+    "Long"          { markTokenStart(); return TokenType.BUILTIN_TYPE; }
+    "Float"         { markTokenStart(); return TokenType.BUILTIN_TYPE; }
+    "Double"        { markTokenStart(); return TokenType.BUILTIN_TYPE; }
+    "Boolean"       { markTokenStart(); return TokenType.BUILTIN_TYPE; }
+    "Char"          { markTokenStart(); return TokenType.BUILTIN_TYPE; }
+    "Byte"          { markTokenStart(); return TokenType.BUILTIN_TYPE; }
+    "Short"         { markTokenStart(); return TokenType.BUILTIN_TYPE; }
+    "Unit"          { markTokenStart(); return TokenType.BUILTIN_TYPE; }
+    "Any"           { markTokenStart(); return TokenType.BUILTIN_TYPE; }
+    "Nothing"       { markTokenStart(); return TokenType.BUILTIN_TYPE; }
+    "Array"         { markTokenStart(); return TokenType.BUILTIN_TYPE; }
+    "List"          { markTokenStart(); return TokenType.BUILTIN_TYPE; }
+    "Set"           { markTokenStart(); return TokenType.BUILTIN_TYPE; }
+    "Map"           { markTokenStart(); return TokenType.BUILTIN_TYPE; }
+    "MutableList"   { markTokenStart(); return TokenType.BUILTIN_TYPE; }
+    "MutableSet"    { markTokenStart(); return TokenType.BUILTIN_TYPE; }
+    "MutableMap"    { markTokenStart(); return TokenType.BUILTIN_TYPE; }
+
     // Comments
     "//"            { markTokenStart(); yybegin(LINE_COMMENT); }
     "/*"            { markTokenStart(); yybegin(BLOCK_COMMENT); }
