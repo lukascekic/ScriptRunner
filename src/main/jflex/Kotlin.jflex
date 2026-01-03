@@ -9,24 +9,31 @@ import com.scriptrunner.lexer.TokenType;
 %unicode
 %line
 %column
+%char
 %type TokenType
 
 %{
     private int tokenStart;
     private int tokenLine;
     private int tokenColumn;
+    private int stateBeforeEof = YYINITIAL;
 
     public int getTokenStart() { return tokenStart; }
-    public int getTokenEnd() { return zzMarkedPos; }
+    public int getTokenEnd() { return (int) yychar + yylength(); }
     public int getTokenLine() { return tokenLine + 1; }
     public int getTokenColumn() { return tokenColumn + 1; }
     public String getTokenText() { return yytext(); }
     public int getCurrentState() { return zzLexicalState; }
+    public int getStateBeforeEof() { return stateBeforeEof; }
 
     private void markTokenStart() {
-        tokenStart = zzStartRead;
+        tokenStart = (int) yychar;
         tokenLine = yyline;
         tokenColumn = yycolumn;
+    }
+
+    private void saveStateBeforeEof() {
+        stateBeforeEof = zzLexicalState;
     }
 %}
 
@@ -168,7 +175,7 @@ FloatLiteral = {Digit}+ \. {Digit}* ([eE] [+-]? {Digit}+)? [fFdD]?
     "\"\"\""        { yybegin(YYINITIAL); return TokenType.STRING; }
     [^\"]+          { }
     \"              { }
-    <<EOF>>         { yybegin(YYINITIAL); return TokenType.STRING; }
+    <<EOF>>         { saveStateBeforeEof(); yybegin(YYINITIAL); return TokenType.STRING; }
 }
 
 <LINE_COMMENT> {
@@ -181,5 +188,5 @@ FloatLiteral = {Digit}+ \. {Digit}* ([eE] [+-]? {Digit}+)? [fFdD]?
     "*/"            { yybegin(YYINITIAL); return TokenType.COMMENT; }
     [^*]+           { }
     "*"             { }
-    <<EOF>>         { yybegin(YYINITIAL); return TokenType.COMMENT; }
+    <<EOF>>         { saveStateBeforeEof(); yybegin(YYINITIAL); return TokenType.COMMENT; }
 }
