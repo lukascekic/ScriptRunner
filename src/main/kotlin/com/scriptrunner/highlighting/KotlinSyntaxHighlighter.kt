@@ -6,6 +6,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import com.scriptrunner.lexer.BracketMatcher
+import com.scriptrunner.lexer.IncrementalLexer
 import com.scriptrunner.lexer.KotlinLexerAdapter
 import com.scriptrunner.lexer.TokenType
 import com.scriptrunner.model.ScriptLanguage
@@ -25,8 +26,9 @@ object SyntaxColors {
 class KotlinSyntaxHighlighter : SyntaxHighlighter {
     override val language = ScriptLanguage.KOTLIN
 
-    private val lexer = KotlinLexerAdapter()
-    private val bracketMatcher = BracketMatcher(lexer)
+    private val incrementalLexer = IncrementalLexer()
+    private val lexerAdapter = KotlinLexerAdapter()
+    private val bracketMatcher = BracketMatcher(lexerAdapter)
 
     override fun highlight(code: String): AnnotatedString = highlight(code, -1)
 
@@ -35,7 +37,7 @@ class KotlinSyntaxHighlighter : SyntaxHighlighter {
 
         if (code.isEmpty()) return@buildAnnotatedString
 
-        val tokens = lexer.tokenize(code)
+        val tokens = incrementalLexer.tokenize(code)
 
         // Get bracket matching info
         val matchedOffsets = mutableSetOf<Int>()
