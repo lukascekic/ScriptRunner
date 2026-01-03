@@ -53,7 +53,7 @@ IdentifierChar = {Letter} | {Digit}
 Identifier = {Letter} {IdentifierChar}*
 IntegerLiteral = {Digit}+ [lL]?
 HexLiteral = 0[xX] {HexDigit}+ [lL]?
-FloatLiteral = {Digit}+ \. {Digit}* ([eE] [+-]? {Digit}+)? [fFdD]?
+FloatLiteral = {Digit}+ \. {Digit}+ ([eE] [+-]? {Digit}+)? [fFdD]?
              | {Digit}+ [eE] [+-]? {Digit}+ [fFdD]?
              | {Digit}+ [fFdD]
 
