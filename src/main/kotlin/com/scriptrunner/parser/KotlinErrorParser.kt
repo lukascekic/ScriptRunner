@@ -1,12 +1,14 @@
 package com.scriptrunner.parser
 
 import com.scriptrunner.model.ErrorLocation
+import org.slf4j.LoggerFactory
 
 /**
  * Parses kotlinc error/warning output format: filename.kts:line:column: error: message
  */
 class KotlinErrorParser : ErrorParser {
 
+    private val logger = LoggerFactory.getLogger(KotlinErrorParser::class.java)
     private val errorPattern = Regex("""\.kts:(\d+):(\d+)?:?\s*(error|warning):\s*(.+)""")
 
     override fun parse(line: String): ErrorLocation? {
@@ -16,6 +18,7 @@ class KotlinErrorParser : ErrorParser {
         val column = match.groupValues[2].toIntOrNull() ?: 1
         val message = match.groupValues[4].trim()
 
+        logger.debug("Parsed error location: {}:{} - {}", lineNum, column, message)
         return ErrorLocation(line = lineNum, column = column, message = message)
     }
 }

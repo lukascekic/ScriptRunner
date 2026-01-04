@@ -39,6 +39,7 @@ import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -175,6 +176,16 @@ fun EditorPane(
                             // Escape to dismiss
                             completionVisible && event.key == Key.Escape -> {
                                 onCompletionDismiss()
+                                true
+                            }
+                            // Tab key - insert 4 spaces (when completion not visible)
+                            !completionVisible && event.key == Key.Tab -> {
+                                val spaces = "    "
+                                val newText = value.text.substring(0, value.selection.start) +
+                                        spaces +
+                                        value.text.substring(value.selection.end)
+                                val newCursor = value.selection.start + spaces.length
+                                onValueChange(TextFieldValue(newText, TextRange(newCursor)))
                                 true
                             }
                             else -> false

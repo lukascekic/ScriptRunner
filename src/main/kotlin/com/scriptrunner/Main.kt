@@ -5,8 +5,12 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.scriptrunner.ui.App
+import org.slf4j.LoggerFactory
+
+private val logger = LoggerFactory.getLogger("com.scriptrunner.Main")
 
 fun main() = application {
+    logger.info("Script Runner application started")
     Window(
         onCloseRequest = ::exitApplication,
         title = "Script Runner",

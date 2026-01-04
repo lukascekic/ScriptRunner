@@ -16,12 +16,14 @@ import com.scriptrunner.model.Script
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import org.slf4j.LoggerFactory
 import kotlin.time.Duration
 import kotlin.time.TimeSource
 
 /** Main application state and business logic. */
 class MainViewModel {
 
+    private val logger = LoggerFactory.getLogger(MainViewModel::class.java)
     private val executor: ScriptExecutor = KotlinScriptExecutor()
     private var executionJob: Job? = null
     private var startTime: TimeSource.Monotonic.ValueTimeMark? = null
@@ -54,6 +56,7 @@ class MainViewModel {
         startTime = TimeSource.Monotonic.markNow()
 
         val script = Script(scriptContent.value.text)
+        logger.info("Starting script execution, content length: {} chars", script.content.length)
 
         executionJob = scope.launch {
             executor.execute(script).collect { event ->
@@ -75,6 +78,7 @@ class MainViewModel {
 
     /** Stops the currently running script. */
     fun stopScript() {
+        logger.info("Script execution cancelled by user")
         executor.cancel()
         executionJob?.cancel()
         executionJob = null
@@ -113,6 +117,7 @@ class MainViewModel {
 
     /** Moves cursor to the error location in the editor. */
     fun navigateToError(error: ErrorLocation) {
+        logger.debug("Navigating to error at line {}, column {}", error.line, error.column)
         val text = scriptContent.value.text
         val lines = text.lines()
 
