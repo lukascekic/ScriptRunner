@@ -18,7 +18,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.delay
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
@@ -47,6 +50,17 @@ fun EditorPane(
 
     // Use cursor position for bracket matching
     val cursorOffset = value.selection.start
+
+    // Calculate current line for highlighting
+    val currentLine = remember(textLayoutResult, cursorOffset) {
+        textLayoutResult?.let { layout ->
+            if (cursorOffset <= layout.layoutInput.text.length) {
+                layout.getLineForOffset(cursorOffset)
+            } else 0
+        } ?: 0
+    }
+
+    val highlightColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
 
     val syntaxTransformation = remember(highlighter, value.text, cursorOffset) {
         VisualTransformation { text ->
@@ -80,7 +94,20 @@ fun EditorPane(
                 .fillMaxSize()
                 .padding(12.dp)
                 .focusRequester(focusRequester)
-                .verticalScroll(scrollState),
+                .verticalScroll(scrollState)
+                .drawBehind {
+                    textLayoutResult?.let { layout ->
+                        if (currentLine < layout.lineCount) {
+                            val lineTop = layout.getLineTop(currentLine)
+                            val lineBottom = layout.getLineBottom(currentLine)
+                            drawRect(
+                                color = highlightColor,
+                                topLeft = Offset(0f, lineTop),
+                                size = Size(size.width, lineBottom - lineTop)
+                            )
+                        }
+                    }
+                },
             textStyle = TextStyle(
                 fontFamily = FontFamily.Monospace,
                 fontSize = 14.sp,
