@@ -72,14 +72,34 @@ fun EditorPane(
     ) {
         val viewportHeight = constraints.maxHeight.toFloat()
 
-        // Auto-scroll to keep cursor visible
+        // Auto-scroll to keep cursor visible - only if cursor is outside visible area
         LaunchedEffect(value.text.length, value.selection.start) {
             delay(50)
             textLayoutResult?.let { layout ->
                 val cursorPos = value.selection.start.coerceAtMost(layout.layoutInput.text.length)
                 val cursorRect = layout.getCursorRect(cursorPos)
-                val targetScroll = (cursorRect.bottom - viewportHeight + 100).coerceAtLeast(0f).toInt()
-                scrollState.scrollTo(targetScroll)
+
+                val currentScroll = scrollState.value.toFloat()
+                val cursorTop = cursorRect.top
+                val cursorBottom = cursorRect.bottom
+
+                // Define visible area with some padding
+                val visibleTop = currentScroll
+                val visibleBottom = currentScroll + viewportHeight
+                val padding = 50f
+
+                // Only scroll if cursor is outside visible area
+                when {
+                    cursorTop < visibleTop + padding -> {
+                        // Cursor is above visible area - scroll up
+                        scrollState.scrollTo((cursorTop - padding).coerceAtLeast(0f).toInt())
+                    }
+                    cursorBottom > visibleBottom - padding -> {
+                        // Cursor is below visible area - scroll down
+                        scrollState.scrollTo((cursorBottom - viewportHeight + padding).coerceAtLeast(0f).toInt())
+                    }
+                    // else: cursor is visible, don't scroll
+                }
             }
         }
 
