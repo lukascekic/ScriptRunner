@@ -23,7 +23,7 @@ class MainViewModel {
     private var executionJob: Job? = null
     private var startTime: TimeSource.Monotonic.ValueTimeMark? = null
 
-    val scriptContent = mutableStateOf(TextFieldValue(""))
+    val editorViewModel = EditorViewModel()
     val outputLines = mutableStateListOf<OutputLine>()
     val executionState = mutableStateOf<ExecutionState>(ExecutionState.Idle)
     val clearGeneration = mutableStateOf(0)
@@ -36,7 +36,7 @@ class MainViewModel {
         executionState.value = ExecutionState.Running
         startTime = TimeSource.Monotonic.markNow()
 
-        val script = Script(scriptContent.value.text)
+        val script = Script(editorViewModel.text.value.text)
 
         executionJob = scope.launch {
             executor.execute(script).collect { event ->
@@ -69,12 +69,8 @@ class MainViewModel {
         clearGeneration.value++
     }
 
-    fun updateScript(value: TextFieldValue) {
-        scriptContent.value = value
-    }
-
     fun navigateToError(error: ErrorLocation) {
-        val text = scriptContent.value.text
+        val text = editorViewModel.text.value.text
         val lines = text.lines()
 
         // Calculate character offset for line:column
@@ -86,8 +82,8 @@ class MainViewModel {
         offset += (error.column - 1).coerceIn(0, lines.getOrNull(lineIndex)?.length ?: 0)
         offset = offset.coerceIn(0, text.length)
 
-        scriptContent.value = scriptContent.value.copy(
+        editorViewModel.setText(editorViewModel.text.value.copy(
             selection = TextRange(offset)
-        )
+        ))
     }
 }

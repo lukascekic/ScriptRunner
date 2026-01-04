@@ -10,6 +10,17 @@ import com.scriptrunner.lexer.IncrementalLexer
 import com.scriptrunner.lexer.KotlinLexerAdapter
 import com.scriptrunner.lexer.TokenType
 import com.scriptrunner.model.ScriptLanguage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 object SyntaxColors {
     val keyword = Color(0xFFCF8E6D)      // Orange
@@ -24,6 +35,8 @@ object SyntaxColors {
     val unmatchedBracket = Color(0xFFFF6B6B)   // Red for unmatched brackets
 }
 
+private data class HighlightRequest(val code: String, val cursorOffset: Int)
+
 class KotlinSyntaxHighlighter : SyntaxHighlighter {
     override val language = ScriptLanguage.KOTLIN
 
@@ -31,9 +44,29 @@ class KotlinSyntaxHighlighter : SyntaxHighlighter {
     private val lexerAdapter = KotlinLexerAdapter()
     private val bracketMatcher = BracketMatcher(lexerAdapter)
 
-    override fun highlight(code: String): AnnotatedString = highlight(code, -1)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val requests = MutableSharedFlow<HighlightRequest>(replay = 1, extraBufferCapacity = 64)
+    private val _highlightedText = MutableStateFlow(AnnotatedString(""))
+    override val highlightedText: StateFlow<AnnotatedString> = _highlightedText.asStateFlow()
 
-    override fun highlight(code: String, cursorOffset: Int): AnnotatedString = buildAnnotatedString {
+    init {
+        scope.launch {
+            @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+            requests.conflate().mapLatest { request ->
+                withContext(Dispatchers.Default) {
+                    computeHighlighting(request.code, request.cursorOffset)
+                }
+            }.collect { result ->
+                _highlightedText.value = result
+            }
+        }
+    }
+
+    override fun requestHighlight(code: String, cursorOffset: Int) {
+        requests.tryEmit(HighlightRequest(code, cursorOffset))
+    }
+
+    private fun computeHighlighting(code: String, cursorOffset: Int): AnnotatedString = buildAnnotatedString {
         append(code)
 
         if (code.isEmpty()) return@buildAnnotatedString

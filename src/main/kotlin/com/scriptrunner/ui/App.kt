@@ -39,8 +39,7 @@ fun App() {
                 .padding(8.dp)
         ) {
             EditorPane(
-                value = viewModel.scriptContent.value,
-                onValueChange = viewModel::updateScript,
+                viewModel = viewModel.editorViewModel,
                 focusRequester = editorFocusRequester,
                 modifier = Modifier
                     .weight(1f)
