@@ -43,22 +43,18 @@ fun EditorPane(
     onValueChange: (TextFieldValue) -> Unit,
     modifier: Modifier = Modifier,
     focusRequester: FocusRequester = remember { FocusRequester() },
-    highlighter: SyntaxHighlighter = remember { KotlinSyntaxHighlighter() }
+    isDarkTheme: Boolean = false
 ) {
+    val syntaxColors = if (isDarkTheme) SyntaxColors.dark else SyntaxColors.light
+    val highlighter: SyntaxHighlighter = remember(isDarkTheme) {
+        KotlinSyntaxHighlighter(syntaxColors)
+    }
+
     val scrollState = rememberScrollState()
     var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
 
     // Use cursor position for bracket matching
     val cursorOffset = value.selection.start
-
-    // Calculate current line for highlighting
-    val currentLine = remember(textLayoutResult, cursorOffset) {
-        textLayoutResult?.let { layout ->
-            if (cursorOffset <= layout.layoutInput.text.length) {
-                layout.getLineForOffset(cursorOffset)
-            } else 0
-        } ?: 0
-    }
 
     val highlightColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
 
@@ -97,7 +93,10 @@ fun EditorPane(
                 .verticalScroll(scrollState)
                 .drawBehind {
                     textLayoutResult?.let { layout ->
-                        if (currentLine < layout.lineCount) {
+                        // Only draw if cursor position is valid for current layout
+                        val textLength = layout.layoutInput.text.length
+                        if (cursorOffset <= textLength) {
+                            val currentLine = layout.getLineForOffset(cursorOffset.coerceAtMost(textLength))
                             val lineTop = layout.getLineTop(currentLine)
                             val lineBottom = layout.getLineBottom(currentLine)
                             drawRect(
@@ -111,7 +110,7 @@ fun EditorPane(
             textStyle = TextStyle(
                 fontFamily = FontFamily.Monospace,
                 fontSize = 14.sp,
-                color = SyntaxColors.default
+                color = syntaxColors.default
             ),
             cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
             onTextLayout = { textLayoutResult = it },
@@ -123,7 +122,7 @@ fun EditorPane(
                         style = TextStyle(
                             fontFamily = FontFamily.Monospace,
                             fontSize = 14.sp,
-                            color = SyntaxColors.default.copy(alpha = 0.5f)
+                            color = syntaxColors.default.copy(alpha = 0.5f)
                         )
                     )
                 }

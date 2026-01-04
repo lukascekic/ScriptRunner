@@ -27,6 +27,11 @@ class MainViewModel {
     val outputLines = mutableStateListOf<OutputLine>()
     val executionState = mutableStateOf<ExecutionState>(ExecutionState.Idle)
     val clearGeneration = mutableStateOf(0)
+    val isDarkTheme = mutableStateOf(false)
+
+    fun toggleTheme() {
+        isDarkTheme.value = !isDarkTheme.value
+    }
 
     fun runScript(scope: CoroutineScope) {
         if (executionState.value is ExecutionState.Running) return

@@ -11,20 +11,50 @@ import com.scriptrunner.lexer.KotlinLexerAdapter
 import com.scriptrunner.lexer.TokenType
 import com.scriptrunner.model.ScriptLanguage
 
-object SyntaxColors {
-    val keyword = Color(0xFFCF8E6D)      // Orange
-    val builtinType = Color(0xFF56A8F5)  // Blue for built-in types
-    val string = Color(0xFF6AAB73)       // Green
-    val comment = Color(0xFF7A7E85)      // Gray
-    val number = Color(0xFF2AACB8)       // Cyan/Blue
-    val bracket = Color(0xFFD4D4D4)      // Light gray for brackets
-    val default = Color(0xFFBCBEC4)      // Light gray (default text)
-    val matchedBracket = Color(0x814BA9FF)    // Blue highlight background
-    val matchedBracketText = Color(0xFF000000) // Black for matched bracket text
-    val unmatchedBracket = Color(0xFFFF6B6B)   // Red for unmatched brackets
+data class SyntaxColors(
+    val keyword: Color,
+    val builtinType: Color,
+    val string: Color,
+    val comment: Color,
+    val number: Color,
+    val bracket: Color,
+    val default: Color,
+    val matchedBracket: Color,
+    val matchedBracketText: Color,
+    val unmatchedBracket: Color
+) {
+    companion object {
+        val dark = SyntaxColors(
+            keyword = Color(0xFFCF8E6D),          // Orange
+            builtinType = Color(0xFF56A8F5),      // Blue
+            string = Color(0xFF6AAB73),           // Green
+            comment = Color(0xFF7A7E85),          // Gray
+            number = Color(0xFF2AACB8),           // Cyan
+            bracket = Color(0xFFD4D4D4),          // Light gray
+            default = Color(0xFFBCBEC4),          // Light gray
+            matchedBracket = Color(0x814BA9FF),   // Blue highlight
+            matchedBracketText = Color(0xFF000000),
+            unmatchedBracket = Color(0xFFFF6B6B)  // Red
+        )
+
+        val light = SyntaxColors(
+            keyword = Color(0xFF0033B3),          // Dark blue
+            builtinType = Color(0xFF0057A8),      // Blue
+            string = Color(0xFF067D17),           // Dark green
+            comment = Color(0xFF8C8C8C),          // Gray
+            number = Color(0xFF1750EB),           // Blue
+            bracket = Color(0xFF444444),          // Dark gray
+            default = Color(0xFF1E1E1E),          // Near black
+            matchedBracket = Color(0x80FFEF00),   // Yellow highlight
+            matchedBracketText = Color(0xFF000000),
+            unmatchedBracket = Color(0xFFD32F2F)  // Red
+        )
+    }
 }
 
-class KotlinSyntaxHighlighter : SyntaxHighlighter {
+class KotlinSyntaxHighlighter(
+    private val colors: SyntaxColors = SyntaxColors.dark
+) : SyntaxHighlighter {
     override val language = ScriptLanguage.KOTLIN
 
     private val incrementalLexer = IncrementalLexer()
@@ -71,25 +101,25 @@ class KotlinSyntaxHighlighter : SyntaxHighlighter {
     ): SpanStyle? {
         // Check for bracket highlighting first
         if (token.startOffset in unmatchedOffsets) {
-            return SpanStyle(color = SyntaxColors.unmatchedBracket)
+            return SpanStyle(color = colors.unmatchedBracket)
         }
         if (token.startOffset in matchedOffsets) {
             return SpanStyle(
-                color = SyntaxColors.matchedBracketText,
-                background = SyntaxColors.matchedBracket
+                color = colors.matchedBracketText,
+                background = colors.matchedBracket
             )
         }
 
         return when (token.type) {
-            TokenType.KEYWORD -> SpanStyle(color = SyntaxColors.keyword)
-            TokenType.BUILTIN_TYPE -> SpanStyle(color = SyntaxColors.builtinType)
-            TokenType.STRING, TokenType.CHAR -> SpanStyle(color = SyntaxColors.string)
-            TokenType.COMMENT -> SpanStyle(color = SyntaxColors.comment, fontStyle = FontStyle.Italic)
-            TokenType.NUMBER -> SpanStyle(color = SyntaxColors.number)
+            TokenType.KEYWORD -> SpanStyle(color = colors.keyword)
+            TokenType.BUILTIN_TYPE -> SpanStyle(color = colors.builtinType)
+            TokenType.STRING, TokenType.CHAR -> SpanStyle(color = colors.string)
+            TokenType.COMMENT -> SpanStyle(color = colors.comment, fontStyle = FontStyle.Italic)
+            TokenType.NUMBER -> SpanStyle(color = colors.number)
             TokenType.LPAREN, TokenType.RPAREN,
             TokenType.LBRACE, TokenType.RBRACE,
             TokenType.LBRACKET, TokenType.RBRACKET,
-            TokenType.LT, TokenType.GT -> SpanStyle(color = SyntaxColors.bracket)
+            TokenType.LT, TokenType.GT -> SpanStyle(color = colors.bracket)
             TokenType.IDENTIFIER, TokenType.OPERATOR -> null
             TokenType.WHITESPACE, TokenType.NEWLINE -> null
             TokenType.ERROR -> SpanStyle(color = Color.Red)

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -16,6 +17,7 @@ import com.scriptrunner.ui.components.EditorPane
 import com.scriptrunner.ui.components.OutputPane
 import com.scriptrunner.ui.components.StatusBar
 import com.scriptrunner.ui.components.Toolbar
+import com.scriptrunner.ui.theme.ScriptRunnerTheme
 import com.scriptrunner.viewmodel.MainViewModel
 
 @Composable
@@ -25,44 +27,52 @@ fun App() {
     val editorFocusRequester = remember { FocusRequester() }
 
     val isRunning = viewModel.executionState.value is ExecutionState.Running
+    val isDarkTheme = viewModel.isDarkTheme.value
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Toolbar(
-            isRunning = isRunning,
-            onRun = { viewModel.runScript(scope) },
-            onStop = viewModel::stopScript
-        )
+    ScriptRunnerTheme(isDarkTheme = isDarkTheme) {
+        Surface(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                Toolbar(
+                    isRunning = isRunning,
+                    onRun = { viewModel.runScript(scope) },
+                    onStop = viewModel::stopScript,
+                    isDarkTheme = isDarkTheme,
+                    onToggleTheme = viewModel::toggleTheme
+                )
 
-        Row(
-            modifier = Modifier
-                .weight(1f)
-                .padding(8.dp)
-        ) {
-            EditorPane(
-                value = viewModel.scriptContent.value,
-                onValueChange = viewModel::updateScript,
-                focusRequester = editorFocusRequester,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .padding(end = 4.dp)
-            )
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(8.dp)
+                ) {
+                    EditorPane(
+                        value = viewModel.scriptContent.value,
+                        onValueChange = viewModel::updateScript,
+                        focusRequester = editorFocusRequester,
+                        isDarkTheme = isDarkTheme,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .padding(end = 4.dp)
+                    )
 
-            OutputPane(
-                lines = viewModel.outputLines,
-                clearGeneration = viewModel.clearGeneration.value,
-                onClear = viewModel::clearOutput,
-                onErrorClick = { error ->
-                    viewModel.navigateToError(error)
-                    editorFocusRequester.requestFocus()
-                },
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .padding(start = 4.dp)
-            )
+                    OutputPane(
+                        lines = viewModel.outputLines,
+                        clearGeneration = viewModel.clearGeneration.value,
+                        onClear = viewModel::clearOutput,
+                        onErrorClick = { error ->
+                            viewModel.navigateToError(error)
+                            editorFocusRequester.requestFocus()
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .padding(start = 4.dp)
+                    )
+                }
+
+                StatusBar(executionState = viewModel.executionState.value)
+            }
         }
-
-        StatusBar(executionState = viewModel.executionState.value)
     }
 }
