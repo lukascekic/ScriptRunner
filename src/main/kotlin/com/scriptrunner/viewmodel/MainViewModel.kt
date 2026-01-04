@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 import kotlin.time.Duration
 import kotlin.time.TimeSource
 
+/** Main application state and business logic. */
 class MainViewModel {
 
     private val executor: ScriptExecutor = KotlinScriptExecutor()
@@ -33,6 +34,7 @@ class MainViewModel {
         isDarkTheme.value = !isDarkTheme.value
     }
 
+    /** Executes the current script content. */
     fun runScript(scope: CoroutineScope) {
         if (executionState.value is ExecutionState.Running) return
 
@@ -61,6 +63,7 @@ class MainViewModel {
         }
     }
 
+    /** Stops the currently running script. */
     fun stopScript() {
         executor.cancel()
         executionJob?.cancel()
@@ -78,6 +81,7 @@ class MainViewModel {
         scriptContent.value = value
     }
 
+    /** Moves cursor to the error location in the editor. */
     fun navigateToError(error: ErrorLocation) {
         val text = scriptContent.value.text
         val lines = text.lines()

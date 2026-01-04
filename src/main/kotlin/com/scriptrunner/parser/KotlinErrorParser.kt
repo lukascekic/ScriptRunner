@@ -2,10 +2,11 @@ package com.scriptrunner.parser
 
 import com.scriptrunner.model.ErrorLocation
 
+/**
+ * Parses kotlinc error/warning output format: filename.kts:line:column: error: message
+ */
 class KotlinErrorParser : ErrorParser {
 
-    // Matches: filename.kts:line:column: error: message
-    // Also matches: filename.kts:line: error: message (no column)
     private val errorPattern = Regex("""\.kts:(\d+):(\d+)?:?\s*(error|warning):\s*(.+)""")
 
     override fun parse(line: String): ErrorLocation? {

@@ -1,10 +1,12 @@
 package com.scriptrunner.model
 
+/** A script to be executed. */
 data class Script(
     val content: String,
     val language: ScriptLanguage = ScriptLanguage.KOTLIN
 )
 
+/** Supported script languages with their file extensions and execution commands. */
 enum class ScriptLanguage(val extension: String) {
     KOTLIN("kts"),
     SWIFT("swift");

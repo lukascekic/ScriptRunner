@@ -11,6 +11,7 @@ import com.scriptrunner.lexer.KotlinLexerAdapter
 import com.scriptrunner.lexer.TokenType
 import com.scriptrunner.model.ScriptLanguage
 
+/** Color scheme for syntax highlighting. Includes dark and light presets. */
 data class SyntaxColors(
     val keyword: Color,
     val builtinType: Color,
@@ -24,6 +25,7 @@ data class SyntaxColors(
     val unmatchedBracket: Color
 ) {
     companion object {
+        /** Dark theme colors. */
         val dark = SyntaxColors(
             keyword = Color(0xFFCF8E6D),          // Orange
             builtinType = Color(0xFF56A8F5),      // Blue
@@ -37,6 +39,7 @@ data class SyntaxColors(
             unmatchedBracket = Color(0xFFFF6B6B)  // Red
         )
 
+        /** Light theme colors. */
         val light = SyntaxColors(
             keyword = Color(0xFF0033B3),          // Dark blue
             builtinType = Color(0xFF0057A8),      // Blue
@@ -52,6 +55,7 @@ data class SyntaxColors(
     }
 }
 
+/** Kotlin syntax highlighter using JFlex lexer and bracket matching. */
 class KotlinSyntaxHighlighter(
     private val colors: SyntaxColors = SyntaxColors.dark
 ) : SyntaxHighlighter {

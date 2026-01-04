@@ -1,16 +1,19 @@
 package com.scriptrunner.lexer
 
+/** A matched pair of opening and closing brackets. */
 data class BracketPair(
     val open: Token,
     val close: Token
 )
 
+/** Result of finding a matching bracket. */
 data class BracketMatch(
     val bracket: Token,
     val match: Token?,
     val isMatched: Boolean
 )
 
+/** Finds matching and unmatched brackets in code. */
 class BracketMatcher(private val lexer: KotlinLexerAdapter = KotlinLexerAdapter()) {
 
     private val bracketTypes = setOf(
@@ -27,6 +30,7 @@ class BracketMatcher(private val lexer: KotlinLexerAdapter = KotlinLexerAdapter(
 
     private val closeToOpen = openToClose.entries.associate { it.value to it.key }
 
+    /** Finds the matching bracket at the cursor position. */
     fun findMatchingBracket(code: String, cursorOffset: Int): BracketMatch? {
         val tokens = lexer.tokenize(code)
         val brackets = tokens.filter { it.type in bracketTypes }
@@ -43,6 +47,7 @@ class BracketMatcher(private val lexer: KotlinLexerAdapter = KotlinLexerAdapter(
         )
     }
 
+    /** Returns all brackets without a matching pair. */
     fun findUnmatchedBrackets(code: String): List<Token> {
         val tokens = lexer.tokenize(code)
         val brackets = tokens.filter { it.type in bracketTypes }
@@ -67,6 +72,7 @@ class BracketMatcher(private val lexer: KotlinLexerAdapter = KotlinLexerAdapter(
         return unmatched
     }
 
+    /** Returns all matched bracket pairs in the code. */
     fun findAllBracketPairs(code: String): List<BracketPair> {
         val tokens = lexer.tokenize(code)
         val brackets = tokens.filter { it.type in bracketTypes }

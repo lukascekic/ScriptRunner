@@ -4,7 +4,6 @@ import java.io.StringReader
 
 /**
  * Incremental lexer that caches tokens per line and only re-tokenizes changed lines.
- * This reduces complexity from O(n) to O(k) where k = number of changed lines.
  *
  * The lexer tracks lexer state at line boundaries to handle multi-line constructs
  * (strings, block comments) correctly. When a line's end state changes, all

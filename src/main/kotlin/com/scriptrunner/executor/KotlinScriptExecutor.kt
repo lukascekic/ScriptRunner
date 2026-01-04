@@ -17,6 +17,9 @@ import org.slf4j.LoggerFactory
 import java.io.File
 import kotlin.coroutines.coroutineContext
 
+/**
+ * Executes Kotlin scripts via kotlinc -script and streams output.
+ */
 class KotlinScriptExecutor(
     private val errorParser: ErrorParser = KotlinErrorParser()
 ) : ScriptExecutor {

@@ -7,7 +7,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-// Darcula-inspired dark theme colors
+// Dark theme colors
 private val DarkColorScheme = darkColorScheme(
     primary = Color(0xFF589DF6),
     onPrimary = Color.White,
