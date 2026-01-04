@@ -50,6 +50,14 @@ fun App() {
                         onValueChange = viewModel::updateScript,
                         focusRequester = editorFocusRequester,
                         isDarkTheme = isDarkTheme,
+                        completionItems = viewModel.completionItems.value,
+                        completionVisible = viewModel.completionVisible.value,
+                        selectedCompletionIndex = viewModel.selectedCompletionIndex.value,
+                        onCompletionAccept = viewModel::acceptCompletion,
+                        onCompletionDismiss = viewModel::dismissCompletion,
+                        onCompletionUp = viewModel::completionUp,
+                        onCompletionDown = viewModel::completionDown,
+                        onCompletionTrigger = viewModel::showCompletions,
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight()

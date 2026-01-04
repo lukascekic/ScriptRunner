@@ -41,7 +41,7 @@ data class SyntaxColors(
 
         /** Light theme colors. */
         val light = SyntaxColors(
-            keyword = Color(0xFF0033B3),          // Dark blue
+            keyword = Color(0xFF793CA1),          // Dark blue
             builtinType = Color(0xFF0057A8),      // Blue
             string = Color(0xFF067D17),           // Dark green
             comment = Color(0xFF8C8C8C),          // Gray
