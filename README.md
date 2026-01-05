@@ -2,7 +2,8 @@
 
 A desktop application for writing and executing Kotlin scripts with live output streaming. Built with Compose Desktop.
 
-![Screenshot placeholder](screenshots/main-window.png)
+![Screenshot of output](demo/output-error.png)
+![Screenshot while running](demo/running.png)
 
 ## Prerequisites
 
@@ -56,7 +57,8 @@ com.scriptrunner/
 ├── highlighting/   # Syntax highlighter (SyntaxHighlighter interface)
 ├── completion/     # Code completion (CompletionProvider interface)
 ├── viewmodel/      # MVVM state management
-└── ui/             # Compose UI components
+├── ui/             # Compose UI components
+└── demo/           # Screenshots and video demo
 ```
 
 Key design decisions:
