@@ -33,6 +33,11 @@ class BracketMatcher(private val lexer: KotlinLexerAdapter = KotlinLexerAdapter(
     /** Finds the matching bracket at the cursor position. */
     fun findMatchingBracket(code: String, cursorOffset: Int): BracketMatch? {
         val tokens = lexer.tokenize(code)
+        return findMatchingBracket(tokens, cursorOffset)
+    }
+
+    /** Finds the matching bracket at the cursor position using pre-tokenized tokens. */
+    fun findMatchingBracket(tokens: List<Token>, cursorOffset: Int): BracketMatch? {
         val brackets = tokens.filter { it.type in bracketTypes }
 
         val bracketAtCursor = brackets.find {
@@ -50,6 +55,11 @@ class BracketMatcher(private val lexer: KotlinLexerAdapter = KotlinLexerAdapter(
     /** Returns all brackets without a matching pair. */
     fun findUnmatchedBrackets(code: String): List<Token> {
         val tokens = lexer.tokenize(code)
+        return findUnmatchedBrackets(tokens)
+    }
+
+    /** Returns all brackets without a matching pair using pre-tokenized tokens. */
+    fun findUnmatchedBrackets(tokens: List<Token>): List<Token> {
         val brackets = tokens.filter { it.type in bracketTypes }
         val unmatched = mutableListOf<Token>()
         val stack = mutableListOf<Token>()

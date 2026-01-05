@@ -45,13 +45,13 @@ class IncrementalLexerTest {
     }
 
     @Test
-    fun `cache hit when line unchanged`() {
+    fun `results match full lexer after re-tokenizing unchanged code`() {
         val lexer = IncrementalLexer()
 
         val code1 = "val x = 1\nval y = 2"
         lexer.tokenize(code1)
 
-        // Tokenize same code again - should use cache
+        // Tokenize same code again
         val tokens2 = lexer.tokenize(code1)
         val fullTokens = fullLexer.tokenize(code1)
 
@@ -59,7 +59,7 @@ class IncrementalLexerTest {
     }
 
     @Test
-    fun `cache miss when line modified`() {
+    fun `results match full lexer after modifying first line`() {
         val lexer = IncrementalLexer()
 
         val code1 = "val x = 1\nval y = 2"
@@ -218,6 +218,131 @@ class IncrementalLexerTest {
         val fullTokens = fullLexer.tokenize(code)
 
         assertTokensEqual(fullTokens, tokens)
+    }
+
+    // ==================== Cache Statistics Tests ====================
+
+    @Test
+    fun `cache is actually used when lines unchanged`() {
+        val lexer = IncrementalLexer()
+        val code = "val x = 1\nval y = 2"
+
+        // First tokenization - all misses
+        lexer.tokenize(code)
+        lexer.resetCacheStats()
+
+        // Second tokenization - all hits
+        lexer.tokenize(code)
+
+        assertEquals(2, lexer.cacheHits, "Should have 2 cache hits (one per line)")
+        assertEquals(0, lexer.cacheMisses, "Should have 0 cache misses")
+    }
+
+    @Test
+    fun `cache miss when single line modified`() {
+        val lexer = IncrementalLexer()
+        lexer.tokenize("val x = 1\nval y = 2")
+        lexer.resetCacheStats()
+
+        // Modify first line only
+        lexer.tokenize("val x = 100\nval y = 2")
+
+        assertEquals(1, lexer.cacheHits, "Second line should be cache hit")
+        assertEquals(1, lexer.cacheMisses, "First line should be cache miss")
+    }
+
+    @Test
+    fun `all cache misses on first tokenization`() {
+        val lexer = IncrementalLexer()
+        val code = "val x = 1\nval y = 2\nval z = 3"
+
+        lexer.tokenize(code)
+
+        assertEquals(0, lexer.cacheHits, "First tokenization should have 0 hits")
+        assertEquals(3, lexer.cacheMisses, "First tokenization should have 3 misses (one per line)")
+    }
+
+    @Test
+    fun `state change invalidates downstream lines causing misses`() {
+        val lexer = IncrementalLexer()
+
+        // Normal code
+        lexer.tokenize("val x = 1\nval y = 2\nval z = 3")
+        lexer.resetCacheStats()
+
+        // Open block comment on first line - changes state for downstream lines
+        lexer.tokenize("val x = 1 /*\nval y = 2\nval z = 3")
+
+        // First line changed -> miss
+        // Downstream lines have different start state now -> also misses
+        assertEquals(0, lexer.cacheHits, "All lines should miss due to state change")
+        assertEquals(3, lexer.cacheMisses, "All 3 lines should be cache misses")
+    }
+
+    @Test
+    fun `partial cache hits when modifying middle line`() {
+        val lexer = IncrementalLexer()
+        lexer.tokenize("val a = 1\nval b = 2\nval c = 3")
+        lexer.resetCacheStats()
+
+        // Modify middle line
+        lexer.tokenize("val a = 1\nval b = 999\nval c = 3")
+
+        assertEquals(2, lexer.cacheHits, "First and third lines should be hits")
+        assertEquals(1, lexer.cacheMisses, "Middle line should be miss")
+    }
+
+    @Test
+    fun `resetCacheStats clears statistics`() {
+        val lexer = IncrementalLexer()
+
+        lexer.tokenize("val x = 1")
+        assertTrue(lexer.cacheMisses > 0, "Should have misses after first tokenization")
+
+        lexer.resetCacheStats()
+
+        assertEquals(0, lexer.cacheHits, "Hits should be 0 after reset")
+        assertEquals(0, lexer.cacheMisses, "Misses should be 0 after reset")
+    }
+
+    // ==================== Bracket Token Tests ====================
+
+    @Test
+    fun `adjacent brackets are not merged`() {
+        val lexer = IncrementalLexer()
+        val code = "(())"
+        val tokens = lexer.tokenize(code)
+
+        val bracketTokens = tokens.filter {
+            it.type == TokenType.LPAREN || it.type == TokenType.RPAREN
+        }
+
+        assertEquals(4, bracketTokens.size, "Should have 4 separate bracket tokens, got: ${bracketTokens.map { it.text }}")
+        assertEquals("(", bracketTokens[0].text)
+        assertEquals(0, bracketTokens[0].startOffset)
+        assertEquals("(", bracketTokens[1].text)
+        assertEquals(1, bracketTokens[1].startOffset)
+        assertEquals(")", bracketTokens[2].text)
+        assertEquals(2, bracketTokens[2].startOffset)
+        assertEquals(")", bracketTokens[3].text)
+        assertEquals(3, bracketTokens[3].startOffset)
+    }
+
+    @Test
+    fun `adjacent mixed brackets are separate tokens`() {
+        val lexer = IncrementalLexer()
+        val code = "{[()]}"
+        val tokens = lexer.tokenize(code)
+
+        val bracketTokens = tokens.filter {
+            it.type in listOf(
+                TokenType.LPAREN, TokenType.RPAREN,
+                TokenType.LBRACE, TokenType.RBRACE,
+                TokenType.LBRACKET, TokenType.RBRACKET
+            )
+        }
+
+        assertEquals(6, bracketTokens.size, "Should have 6 separate bracket tokens")
     }
 
     private fun assertTokensEqual(expected: List<Token>, actual: List<Token>) {

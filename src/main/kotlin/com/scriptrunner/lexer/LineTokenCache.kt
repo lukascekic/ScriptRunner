@@ -8,8 +8,25 @@ package com.scriptrunner.lexer
 class LineTokenCache {
     private val cache = mutableMapOf<Int, LineState>()
 
+    // Cache statistics for testing and debugging
+    private var _hits = 0
+    private var _misses = 0
+
+    /** Number of cache hits since last reset. */
+    val hits: Int get() = _hits
+
+    /** Number of cache misses since last reset. */
+    val misses: Int get() = _misses
+
+    /** Resets cache statistics to zero. */
+    fun resetStats() {
+        _hits = 0
+        _misses = 0
+    }
+
     /**
      * Gets the cached state for a line if it exists and matches the expected conditions.
+     * Updates hit/miss statistics.
      *
      * @param lineIndex The 0-based line index
      * @param lineContent The current content of the line
@@ -17,11 +34,17 @@ class LineTokenCache {
      * @return The cached LineState if valid, null otherwise
      */
     fun get(lineIndex: Int, lineContent: String, expectedStartState: Int): LineState? {
-        val cached = cache[lineIndex] ?: return null
+        val cached = cache[lineIndex]
+        if (cached == null) {
+            _misses++
+            return null
+        }
         // Cache hit only if content and start state match
         if (cached.lineContent == lineContent && cached.startState == expectedStartState) {
+            _hits++
             return cached
         }
+        _misses++
         return null
     }
 

@@ -12,6 +12,15 @@ import java.io.StringReader
 class IncrementalLexer {
     private val cache = LineTokenCache()
 
+    /** Number of cache hits since last reset. */
+    val cacheHits: Int get() = cache.hits
+
+    /** Number of cache misses since last reset. */
+    val cacheMisses: Int get() = cache.misses
+
+    /** Resets cache statistics to zero. */
+    fun resetCacheStats() = cache.resetStats()
+
     /**
      * Tokenizes the code incrementally, reusing cached results where possible.
      *
@@ -85,9 +94,18 @@ class IncrementalLexer {
         return mergeConsecutiveTokens(allTokens)
     }
 
+    // Token types that should never be merged (each bracket must remain individual for matching)
+    private val nonMergeableTypes = setOf(
+        TokenType.LPAREN, TokenType.RPAREN,
+        TokenType.LBRACE, TokenType.RBRACE,
+        TokenType.LBRACKET, TokenType.RBRACKET,
+        TokenType.LT, TokenType.GT
+    )
+
     /**
      * Merges consecutive tokens of the same type into single tokens.
      * This produces output identical to full tokenization for multiline constructs.
+     * Brackets are excluded from merging to preserve correct bracket matching.
      */
     private fun mergeConsecutiveTokens(tokens: List<Token>): List<Token> {
         if (tokens.isEmpty()) return tokens
@@ -97,8 +115,11 @@ class IncrementalLexer {
 
         for (i in 1 until tokens.size) {
             val next = tokens[i]
-            if (next.type == current.type && next.startOffset == current.endOffset) {
-                // Merge consecutive same-type tokens
+            val canMerge = next.type == current.type &&
+                           next.startOffset == current.endOffset &&
+                           current.type !in nonMergeableTypes
+            if (canMerge) {
+                // Merge consecutive same-type tokens (but not brackets)
                 current = current.copy(
                     endOffset = next.endOffset,
                     text = current.text + next.text

@@ -7,7 +7,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import com.scriptrunner.lexer.BracketMatcher
 import com.scriptrunner.lexer.IncrementalLexer
-import com.scriptrunner.lexer.KotlinLexerAdapter
 import com.scriptrunner.lexer.TokenType
 import com.scriptrunner.model.ScriptLanguage
 
@@ -41,7 +40,7 @@ data class SyntaxColors(
 
         /** Light theme colors. */
         val light = SyntaxColors(
-            keyword = Color(0xFF793CA1),          // Dark blue
+            keyword = Color(0xFF793CA1),          // Purple
             builtinType = Color(0xFF0057A8),      // Blue
             string = Color(0xFF067D17),           // Dark green
             comment = Color(0xFF8C8C8C),          // Gray
@@ -62,8 +61,7 @@ class KotlinSyntaxHighlighter(
     override val language = ScriptLanguage.KOTLIN
 
     private val incrementalLexer = IncrementalLexer()
-    private val lexerAdapter = KotlinLexerAdapter()
-    private val bracketMatcher = BracketMatcher(lexerAdapter)
+    private val bracketMatcher = BracketMatcher()
 
     override fun highlight(code: String): AnnotatedString = highlight(code, -1)
 
@@ -74,12 +72,12 @@ class KotlinSyntaxHighlighter(
 
         val tokens = incrementalLexer.tokenize(code)
 
-        // Get bracket matching info
+        // Get bracket matching info using pre-tokenized tokens (no redundant tokenization)
         val matchedOffsets = mutableSetOf<Int>()
         val unmatchedOffsets = mutableSetOf<Int>()
 
         if (cursorOffset >= 0) {
-            val match = bracketMatcher.findMatchingBracket(code, cursorOffset)
+            val match = bracketMatcher.findMatchingBracket(tokens, cursorOffset)
             if (match != null) {
                 matchedOffsets.add(match.bracket.startOffset)
                 if (match.match != null) {
@@ -88,8 +86,8 @@ class KotlinSyntaxHighlighter(
             }
         }
 
-        // Find all unmatched brackets
-        val unmatched = bracketMatcher.findUnmatchedBrackets(code)
+        // Find all unmatched brackets using pre-tokenized tokens
+        val unmatched = bracketMatcher.findUnmatchedBrackets(tokens)
         unmatched.forEach { unmatchedOffsets.add(it.startOffset) }
 
         for (token in tokens) {
