@@ -12,12 +12,14 @@ A desktop application for writing and executing Kotlin scripts with live output 
 ## Build
 
 ```bash
+cd ScriptRunner
 ./gradlew build
 ```
 
 On Windows:
 ```bash
-gradlew.bat build
+cd ScriptRunner
+./gradlew.bat build
 ```
 
 ## Run
@@ -28,7 +30,7 @@ gradlew.bat build
 
 On Windows:
 ```bash
-gradlew.bat run
+./gradlew.bat run
 ```
 
 ## Features
