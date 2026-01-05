@@ -119,15 +119,34 @@ class MainViewModel {
     fun navigateToError(error: ErrorLocation) {
         logger.debug("Navigating to error at line {}, column {}", error.line, error.column)
         val text = scriptContent.value.text
-        val lines = text.lines()
 
-        // Calculate character offset for line:column
-        val lineIndex = (error.line - 1).coerceIn(0, lines.size - 1)
+        // Calculate offset by finding actual newline positions (handles \r\n, \n, \r)
         var offset = 0
-        for (i in 0 until lineIndex) {
-            offset += lines[i].length + 1 // +1 for newline
+        var currentLine = 1
+        var i = 0
+
+        while (i < text.length && currentLine < error.line) {
+            when {
+                text[i] == '\r' && i + 1 < text.length && text[i + 1] == '\n' -> {
+                    i += 2
+                    currentLine++
+                }
+                text[i] == '\n' || text[i] == '\r' -> {
+                    i++
+                    currentLine++
+                }
+                else -> i++
+            }
         }
-        offset += (error.column - 1).coerceIn(0, lines.getOrNull(lineIndex)?.length ?: 0)
+
+        // Calculate line length for column bounds check
+        var lineEnd = i
+        while (lineEnd < text.length && text[lineEnd] != '\n' && text[lineEnd] != '\r') {
+            lineEnd++
+        }
+        val lineLength = lineEnd - i
+
+        offset = i + (error.column - 1).coerceIn(0, lineLength)
         offset = offset.coerceIn(0, text.length)
 
         scriptContent.value = scriptContent.value.copy(

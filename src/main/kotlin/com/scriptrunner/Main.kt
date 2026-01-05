@@ -7,7 +7,9 @@ import androidx.compose.ui.window.rememberWindowState
 import com.scriptrunner.ui.App
 import org.slf4j.LoggerFactory
 
-private val logger = LoggerFactory.getLogger("com.scriptrunner.Main")
+private object Main
+
+private val logger = LoggerFactory.getLogger(Main::class.java)
 
 fun main() = application {
     logger.info("Script Runner application started")

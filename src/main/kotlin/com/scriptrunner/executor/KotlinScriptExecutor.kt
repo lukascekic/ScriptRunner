@@ -32,7 +32,9 @@ class KotlinScriptExecutor(
     private var process: Process? = null
 
     override fun execute(script: Script): Flow<ExecutionEvent> = flow {
-        val tempFile = File.createTempFile("script", ".${script.language.extension}")
+        val tempFile = File.createTempFile("script", ".${script.language.extension}").apply {
+            deleteOnExit()
+        }
 
         try {
             _isRunning.value = true
